@@ -8,7 +8,7 @@ export default {
       return faker.fake('{{random.boolean}}');
     },
     beds() {
-      return randomNumber(4);
+      return randomNumber(8);
     },
     baths() {
       return randomNumber(3);

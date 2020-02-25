@@ -18,7 +18,7 @@ const usersSeeder = server => {
 };
 
 const propertiesSeeder = server => {
-  server.createList('property', 10);
+  server.createList('property', 50);
 };
 
 export default function seeds(server) {

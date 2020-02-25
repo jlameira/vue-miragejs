@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import axios from 'axios';
+import { filterBase } from './utils';
 
 Vue.use(Vuex);
 
@@ -8,8 +9,22 @@ export default new Vuex.Store({
   state: {
     properties: [],
     reviews: {},
+    filters: {},
   },
   mutations: {
+    ['SET_FILTER'](state, { item, value }) {
+      if (!state.filters[item]) {
+        Vue.set(state.filters, item, []);
+      }
+
+      const filters = state.filters[item];
+
+      if (filters.includes(value)) {
+        state.filters[item] = filters.filter(item => item != value);
+      } else {
+        filters.push(value);
+      }
+    },
     ['SET_PROPERTIES'](state, { properties }) {
       state.properties = properties;
     },
@@ -25,10 +40,9 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    async fetchProperties({commit}){
+    async fetchProperties({ commit }) {
       const response = await axios.get('/api/properties');
-      commit('SET_PROPERTIES',{properties: response.data.properties})
-
+      commit('SET_PROPERTIES', { properties: response.data.properties });
     },
     fetchReviews({ commit }, propertyId) {
       return axios.get(`/api/reviews?propertyId=${propertyId}`).then(res => {
@@ -38,6 +52,30 @@ export default new Vuex.Store({
     resetReviews({ commit }, propertyId = null) {
       commit('RESET_REVIEWS', { propertyId });
     },
+    setFilter({ commit }, { item, value }) {
+      commit('SET_FILTER', { item, value });
+    },
   },
-  modules: {},
+  getters: {
+    // eslint-disable-next-line no-unused-vars
+    filters({ properties }) {
+      return filterBase(properties);
+    },
+    listProperties({ properties, filters }) {
+
+      properties = properties.filter(item => {
+        for (var key in filters) {
+          if (
+            item[key] === undefined ||
+            (!filters[key].includes(item[key]) && filters[key].length > 0)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      return properties.sort();
+    },
+  },
 });
